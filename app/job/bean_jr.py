@@ -10,12 +10,10 @@ class SignJR(Bean):
     test_url = 'https://vip.jr.jd.com/coupon/myIntegralDetail'
     dualsign_url = 'https://ms.jr.jd.com/newjrmactivity/base/sign1111/getSignAward.action?sid=93ace5e13eeb66d119730e38c70791e2'
     coin_url = 'http://wyyl.jd.com/xjk/receiveReward'
-    welfarelottery_url = 'https://ms.jr.jd.com/gw/generic/jrm/h5/m/singleRewardPullNewLottery '
-    welfarepickup_url = 'https://ms.jr.jd.com/gw/generic/jrm/h5/m/userPickUpReward'
 
     def is_signed(self):
         r = self.session.post(self.info_url)
-        signed = false
+        signed = False
 
         if r.ok:
             data = r.json()
@@ -48,13 +46,6 @@ class SignJR(Bean):
             self.logger.info('领取金币礼包 start')
             response = self.session.post(self.coin_url).json()
             print(response)
-
-            self.logger.info('领取福利礼包 start')
-            response = self.session.post(self.welfarelottery_url).json()
-            print(response)
-            response = self.session.post(self.welfarepickup_url).json()
-            print(response)
-
         else:
             self.logger.error('签到失败: Code={}'.format(response['resBusiCode']))
 
