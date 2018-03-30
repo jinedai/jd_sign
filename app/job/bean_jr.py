@@ -10,6 +10,8 @@ class SignJR(Bean):
     test_url = 'https://vip.jr.jd.com/coupon/myIntegralDetail'
     dualsign_url = 'https://ms.jr.jd.com/newjrmactivity/base/sign1111/getSignAward.action?sid=93ace5e13eeb66d119730e38c70791e2'
     coin_url = 'http://wyyl.jd.com/xjk/receiveReward'
+    welfare_url = 'https://home.jdpay.com/my/signIn/?sid=353b74a3e01208afcb4e2ae90345af1w'
+    lottery_url = 'https://ms.jr.jd.com/newjrmactivity/base/appdownload/lotteryBySmart.action'
 
     def is_signed(self):
         r = self.session.post(self.info_url)
@@ -45,6 +47,12 @@ class SignJR(Bean):
 #                self.logger.info('已领取过')
             self.logger.info('领取金币礼包 start')
             response = self.session.post(self.coin_url).json()
+            print(response)
+            self.logger.info('全民来领钢鏰 start')
+            response = self.session.get(self.welfare_url).json()
+            print(response)
+            self.logger.info('每日签到领钢鏰 start')
+            response = self.session.post(self.lottery_url).json()
             print(response)
         else:
             self.logger.error('签到失败: Code={}'.format(response['resBusiCode']))

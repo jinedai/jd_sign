@@ -10,7 +10,8 @@ import requests
 from config import config
 from job import jobs_all
 
-ssl._create_default_https_context = ssl._create_unverified_context
+if hasattr(ssl, '_create_unverified_context'):
+    ssl._create_default_https_context = ssl._create_unverified_context
 
 def main():
     session = make_session()
