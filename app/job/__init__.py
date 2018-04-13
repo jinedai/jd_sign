@@ -8,11 +8,12 @@ from .bean_app import BeanApp
 from .bean_jr import SignJR
 from .daka_app import DakaApp
 from .data_station import DataStation
+from .fanhuan import Fanhuan
 
 __all__ = ['jobs_all', 'logger']
 
 jobs_mobile = [DakaApp, BeanApp, DataStation]
-jobs_web = [SignJR]
+jobs_web = [SignJR, Fanhuan]
 jobs_all = jobs_mobile + jobs_web
 
 
