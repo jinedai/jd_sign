@@ -1,33 +1,28 @@
-import traceback
 
 from requests import Session
-
-import browser
 import job
-from .common import find_value, RequestError
-import os,urllib,re
 import socket
-import json
-import ssl
-import sys
-import re
+import urllib.request
+import http.cookiejar
+import socket
 
 
-class Fanhuan:
-    job_name = '返回购打卡'
-
+class Yanxuan:
+    job_name = '严选签到'
     logger = job.logger
     header = {
-    'Cookie': 'aliyungf_tc=AQAAAO+7/jMCCAQAAbo8OlnhNhV4HzD6; SourcePage=; FirstBrowsePage=http%3A%2F%2Fwww.fanhuan.com%2F; _ga=GA1.2.772854643.1516592781; gr_user_id=f1e07026-8192-40db-9dfc-37c54547fd16; fingerprint=67ddbd3d08e1c9c010e26488b85b1c65; bfd_g=bc54ecf4bbe35d40000007d9000019b756d4e826; Hm_lvt_29a7ebc4f6a8c90821d8b062a0bf830e=1516592781,1516865374; tma=144470946.37210948.1516592780928.1516592780928.1516865374224.2; A9D5EMD96D5E5G=4WmIDYDShWC9zUeZoKnnCJsvOKHrxTMn02PbFbgxMK0=; userDetial=749290765%40qq.com%7c8816762%7c3; user_name=749290765%40qq.com; checkNum=0cbd0035045dd458ad330291cbb407af; Hm_lpvt_29a7ebc4f6a8c90821d8b062a0bf830e=1516865433; amvid=54037e58055cb7f80c23c95b7075d1b6; _pk_id.www.fanhuan.com.b017=25081c976ec260cd.1516592780.3.1516869625.1516869625.',
-    'Pragma': 'no-cache',
-    'X-Requested-With': 'XMLHttpRequest',
-    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
-    'Accept-Language': 'zh-CN,en-US;q=0.8',
-    'Referer': 'https://lh.fanhuan.com/Home/IntegralPark?usertype=1&paraname=token&originfortrack=1e425921cbf1cf7c6fc1e7439092851f&token=4WmIDYDShWC9zUeZoKnnCJsvOKHrxTMn02PbFbgxMK0%3D&basic=NFdtSURZRFNoV0M5elVlWm9Lbm5DSnN2T0tIcnhUTW4wMlBiRmJneE1LMD0mbGdmeg==',
-    'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
-    'Host': 'www.fanhuan.com',
-    'Connection': 'Keep-Alive',
-    'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/64.0.3282.186 Safari/537.36'
+        'Cookie': 'P_INFO=m13168782535@163.com|1531472544|0|yanxuan|00&99|gud&1531472544&yanxuan#gud&440300#10#0#0|131535&0|yanxuan&yanxuan_check&lmlc_check|13168782535@163.com; S_INFO=1531472544|0|0&60##|m13168782535|; yx_username=m13168782535%40163.com; yx_userid=32647961;NTES_SESS=D8d9HUD3eyLgl66pn8YHVK.TLpKh6feJCKDSTp5YbpgquWdmu57zsxGJWMMd2sTFpXWlmAo4R8aioClVLLNKhveyqKjT9m2_RFGpC2G9dX6wH.su_OGpo9FFFvD22Il2bP3FghJ8JbqrSSQzTUd44QcRtlAZGX4FuCKuJYEmXb.TqxdhcQZflQgJlxwJc8bBtP3VyYV5EB083mbx_4qePrEvc; yx_aui=8af8582a-b6a1-412a-9770-45615ad44a24; yx_app_uuid=45158c1ae77deaaa4bfaea0131b1ea0; yx_app_type=android; yx_app_channel=betaOnline',
+        'X-Requested-With': 'com.netease.yanxuan',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+        'Accept-Language': 'zh-CN,en-US;q=0.8',
+        'Referer': 'https://m.you.163.com/points/index',
+        'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+        'Content-Length': '0',
+        'Host': 'm.you.163.com',
+        'Origin': 'https://m.you.163.com',
+        'Connection': 'Keep-Alive',
+        'X-Requested-With': 'XMLHttpRequest',
+        'User-Agent': 'Mozilla/5.0 (Linux; Android 4.4.2; SM-G955N Build/NRD90M) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/30.0.0.0 Mobile Safari/537.36 yanxuan/3.8.6 device-id/cbca280f2f6752ecc275f0589b0b19a5 app-chan-id/betaOnline trustId/android_trustid_4fec63e34456422a8381a16e9c0e059f'
     }
 
     def __init__(self, session: Session):
@@ -36,14 +31,45 @@ class Fanhuan:
 
     def run(self):
         self.logger.info('Job Start: {}'.format(self.job_name))
-        url = 'http://www.fanhuan.com/ajax/SignIn/?callback=?&s=1'
+
+        cookie  = http.cookiejar.CookieJar()
+        handler = urllib.request.HTTPCookieProcessor(cookie)
+        opener  = urllib.request.build_opener(handler)
+        url = 'https://m.you.163.com/points/index'
+        req = urllib.request.Request(url, headers = self.header)
         try:
-            currentPage = self.session.get(url, headers = self.header)
+            currentPage = opener.open(req, timeout=10).read()
+            csrf = ''
+            for item in cookie:
+                if item.name == 'yx_csrf':
+                    csrf = item.value
+            url2 = 'https://m.you.163.com/xhr/points/sign.json?csrf_token=' + csrf
+            header2 = {
+                'Host': 'm.you.163.com',
+                'Connection': 'keep-alive',
+                'Content-Length': '0',
+                'Accept': 'application/json, text/javascript, */*; q=0.01',
+                'Origin': 'https://m.you.163.com',
+                'X-Requested-With': 'XMLHttpRequest',
+                'User-Agent': 'Mozilla/5.0 (Linux; Android 4.4.2; SM-G955N Build/NRD90M) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/30.0.0.0 Mobile Safari/537.36 yanxuan/3.8.6 device-id/cbca280f2f6752ecc275f0589b0b19a5 app-chan-id/betaOnline trustId/android_trustid_4fec63e34456422a8381a16e9c0e059f',
+                'Referer': 'https://m.you.163.com/points/index',
+                'Accept-Encoding': 'gzip,deflate',
+                'Accept-Language': 'zh-CN,en-US;q=0.8',
+                'Cookie': 'yx_csrf=' + csrf + '; P_INFO=m13168782535@163.com|1531472544|0|yanxuan|00&99|gud&1531472544&yanxuan#gud&440300#10#0#0|131535&0|yanxuan&yanxuan_check&lmlc_check|13168782535@163.com; S_INFO=1531472544|0|0&60##|m13168782535|;NTES_SESS=D8d9HUD3eyLgl66pn8YHVK.TLpKh6feJCKDSTp5YbpgquWdmu57zsxGJWMMd2sTFpXWlmAo4R8aioClVLLNKhveyqKjT9m2_RFGpC2G9dX6wH.su_OGpo9FFFvD22Il2bP3FghJ8JbqrSSQzTUd44QcRtlAZGX4FuCKuJYEmXb.TqxdhcQZflQgJlxwJc8bBtP3VyYV5EB083mbx_4qePrEvc; yx_aui=8af8582a-b6a1-412a-9770-45615ad44a24; yx_app_uuid=45158c1ae77deaaa4bfaea0131b1ea0; yx_app_type=android; yx_app_channel=betaOnline; yx_sid=269c7cee-cb38-4d6a-b773-41d4bb9ab124; yx_username=m13168782535%40163.com; yx_userid=32647961'
+            }
+            req = urllib.request.Request(url2, {}, headers=header2)
+            currentPage = urllib.request.urlopen(req, timeout=10).read()
             print(currentPage)
-#            currentPage = json.loads(re.match(".*?({.*}).*", currentPage,re.S).group(1))
-#            print(currentPage)
+        except urllib.URLError:
+            print('url error')
+            return None
         except socket.error:
             print('socket result')
             return None
+        except Exception as e:
+            print(e)
+            print('other error')
+            return None
+
         self.job_success = True
         self.logger.info('Job End.')
