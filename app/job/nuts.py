@@ -32,7 +32,7 @@ class Nuts:
             'User-Agent': 'Mozilla/5.0',
             'Host': 'dfrzrujw.com',
         }
-        opener  = urllib.build_opener()
+        opener  = urllib.request.build_opener()
         url = 'https://dfrzrujw.com/api/client/v4/signin'
         data = {
             "app_channel": "pc",
@@ -48,9 +48,10 @@ class Nuts:
             "system_version": "windows 10.0 10240",
             "username": "sup12914098"
         }
-        req = urllib.Request(url, data = json.dumps(data), headers = header)
+        data = json.dumps(data).encode(encoding='UTF8')
+        req = urllib.request.Request(url, data, headers = header)
         try:
-            currentPage = opener.open(req, timeout=10).read()
+            currentPage = urllib.request.urlopen(req, timeout=10).read()
             data = json.loads(currentPage)
             apiToken = data['data']['user']['api_token']
 
@@ -63,7 +64,7 @@ class Nuts:
                 'Host': ' dfrzrujw.com',
             }
             url = 'https://dfrzrujw.com/api/client/v1/users/checkin'
-            req = urllib.Request(url, {}, headers = header2)
+            req = urllib.request.Request(url, {}, headers = header2)
             result = opener.open(req, timeout=10).read()
             print(result)
         except socket.error:

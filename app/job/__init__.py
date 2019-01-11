@@ -10,12 +10,11 @@ from .daka_app import DakaApp
 from .data_station import DataStation
 from .fanhuan import Fanhuan
 from .nuts import Nuts
-from .yanxuan import Yanxuan
 
 __all__ = ['jobs_all', 'logger']
 
 jobs_mobile = [DakaApp, BeanApp, DataStation]
-jobs_web = [SignJR, Fanhuan, Nuts, Yanxuan]
+jobs_web = [SignJR, Fanhuan, Nuts]
 jobs_all = jobs_mobile + jobs_web
 
 def set_logger():
