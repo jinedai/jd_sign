@@ -5,7 +5,7 @@ from http.cookies import SimpleCookie
 from pathlib import Path
 
 from PyQt5 import QtCore
-from PyQt5.QtCore import QUrl
+from PyQt5.QtCore import QUrl, QTimer
 from PyQt5.QtGui import QIcon
 from PyQt5.QtNetwork import QNetworkProxy
 from PyQt5.QtWebEngineWidgets import QWebEngineView
@@ -19,6 +19,7 @@ from config import config
 QtCore.qInstallMessageHandler(lambda *args: None)
 
 APP = None
+
 
 class MobileBrowser(QWebEngineView):
     def __init__(self):
@@ -35,11 +36,8 @@ class MobileBrowser(QWebEngineView):
         # 等一系列同名 cookie.
         self.cookies = RequestsCookieJar()
 
-        self.show()
-
-        # 最前显示
-        self.raise_()
-        self.activateWindow()
+        # 当到达 target 时自动关闭浏览器窗口
+        self.target = None
 
     def config(self):
         self.page().profile().setHttpUserAgent(config.ua)
@@ -79,16 +77,24 @@ class MobileBrowser(QWebEngineView):
         for cookie in simple_cookie.values():
             self.cookies.set(cookie.key, cookie)
 
+    def load_and_show(self, url: QUrl):
+        self.target = url
+        super().load(url)
+
+        self.show()
+        self.raise_()  # 最前显示
+        self.activateWindow()
+
     def load_finished(self, success):
         """
         自动登录动作
         """
         if success:
-            self.auto_login(self.url().host())
+            self.apply_actions(self.url().host())
 
-    def auto_login(self, host):
+    def apply_actions(self, host):
         """
-        根据地址完成自动填充/登录动作
+        根据地址完成自动填充/登录/关闭窗口动作
         """
         code = None
 
@@ -111,13 +117,25 @@ class MobileBrowser(QWebEngineView):
             $('.login-tab-r').click();
             $('#loginname').val('{username}');
             $('#nloginpwd').val('{password}');
-            $('#autoLogin').prop('checked', true);
-            if ({auto_submit}) $('#loginsubmit').click();
+
+            if ({auto_submit}) {{
+                // 等待页面相关组件加载完成，如 jdSlide 等
+                setTimeout(function() {{
+                    $('#loginsubmit').click();
+                }}, 1000);
+            }}
             """
 
         if code:
             code = code.format_map(config.jd)
             self.page().runJavaScript(code)
+
+        if host == self.target.host():
+            self.setWindowTitle('👌 登录成功，窗口即将关闭...')
+
+            timer = QTimer(self)
+            timer.timeout.connect(self.close)
+            timer.start(1000)
 
 
 def get_cookies(url):
@@ -130,7 +148,7 @@ def get_cookies(url):
         APP.setWindowIcon(QIcon(icon_path))
 
     the_browser = MobileBrowser()
-    the_browser.load(QUrl(url))
+    the_browser.load_and_show(QUrl(url))
 
     if starting_up:
         # On Unix/Linux Qt is configured to use the system locale settings by default. This can cause a conflict when using POSIX functions.
@@ -145,7 +163,8 @@ def get_cookies(url):
 
 def main():
     test_url = 'https://m.jd.com'
-    get_cookies(test_url)
+    cookies = get_cookies(test_url)
+
 
 if __name__ == '__main__':
     main()

@@ -20,7 +20,7 @@ class Config:
             'password': ''
         }
 
-        self.jobs_skip = ['京东会员页签到领京豆']
+        self.jobs_skip = []
 
     @classmethod
     def load(cls, d):
