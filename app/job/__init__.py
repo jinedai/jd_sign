@@ -10,11 +10,12 @@ from .daka_app import DakaApp
 from .double_sign import DoubleSign
 from .data_station import DataStation
 from .nuts import Nuts
+from .fanhuan import Fanhuan
 
 __all__ = ['jobs_all', 'logger']
 
 jobs_mobile = [DakaApp, BeanApp, DataStation]
-jobs_web = [Bean, SignJR, Nuts]
+jobs_web = [Bean, SignJR, Nuts, Fanhuan]
 jobs_all = jobs_mobile + jobs_web + [DoubleSign]
 
 
